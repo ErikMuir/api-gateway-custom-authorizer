@@ -1,4 +1,5 @@
 using System;
+using Amazon.Lambda.APIGatewayEvents;
 using Amazon.Lambda.Core;
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
@@ -8,7 +9,7 @@ namespace ApiGatewayCustomAuthorizer
 {
     public class Function
     {
-        public void FunctionHandler(string request, ILambdaContext context)
+        public APIGatewayCustomAuthorizerResponse FunctionHandler(APIGatewayCustomAuthorizerRequest request, ILambdaContext context)
         {
             throw new NotImplementedException();
         }
