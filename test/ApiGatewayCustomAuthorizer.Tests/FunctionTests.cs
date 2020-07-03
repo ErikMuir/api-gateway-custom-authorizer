@@ -1,5 +1,4 @@
 using System;
-using Amazon.Lambda.APIGatewayEvents;
 using Amazon.Lambda.TestUtilities;
 using Moq;
 using Xunit;
@@ -18,7 +17,7 @@ namespace ApiGatewayCustomAuthorizer.Tests
         [Fact]
         public void FunctionHandler_Throws()
         {
-            var exception = Record.Exception(() => _testObject.FunctionHandler(It.IsAny<APIGatewayCustomAuthorizerRequest>(), new TestLambdaContext()));
+            var exception = Record.Exception(() => _testObject.FunctionHandler(It.IsAny<Request>(), new TestLambdaContext()));
 
             Assert.NotNull(exception);
             Assert.IsType<NotImplementedException>(exception);
