@@ -1,0 +1,2 @@
+API Gateway Custom Authorizer
+Copyright (c) 2020, MuirDev. All rights reserved.
