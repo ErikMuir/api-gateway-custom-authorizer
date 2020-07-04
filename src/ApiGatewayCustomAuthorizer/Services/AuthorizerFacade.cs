@@ -9,12 +9,14 @@ namespace ApiGatewayCustomAuthorizer
     {
         private readonly Logger _logger = Logger.Create<AuthorizerFacade>();
         private readonly IRequestValidationService _requestValidationService;
+        private readonly ITokenConfigService _tokenConfigService;
 
-        public AuthorizerFacade() : this(new RequestValidationService()) { }
+        public AuthorizerFacade() : this(new RequestValidationService(), new TokenConfigService()) { }
 
-        public AuthorizerFacade(IRequestValidationService requestValidationService)
+        public AuthorizerFacade(IRequestValidationService requestValidationService, ITokenConfigService tokenConfigService)
         {
             _requestValidationService = requestValidationService;
+            _tokenConfigService = tokenConfigService;
         }
 
         public bool Authorize(Request request, out ApiGatewayArn apiGatewayArn, out string principalId)
@@ -26,13 +28,13 @@ namespace ApiGatewayCustomAuthorizer
             {
                 _requestValidationService.ValidateRequest(request, out apiGatewayArn);
 
-                // TODO : get jwt config
+                var jwtConfig = _tokenConfigService.GetJwtConfig();
 
                 // TODO : validate token
 
                 // TODO : set principalId
 
-                // TODO : return true;
+                return true;
             }
             catch (BaseException ex)
             {
