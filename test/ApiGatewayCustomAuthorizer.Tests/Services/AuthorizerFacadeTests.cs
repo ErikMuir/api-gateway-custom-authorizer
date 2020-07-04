@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
 using Moq;
 using Xunit;
@@ -10,14 +11,16 @@ namespace ApiGatewayCustomAuthorizer.Tests
         private Mock<IRequestValidationService> _requestValidatorService;
         private Mock<ITokenConfigService> _tokenConfigService;
         private Mock<ITokenValidationService> _tokenValidationService;
+        private Mock<IClaimsPrincipalService> _claimsPrincipalService;
 
         public AuthorizerFacadeTests()
         {
             _requestValidatorService = new Mock<IRequestValidationService>();
             _tokenConfigService = new Mock<ITokenConfigService>();
             _tokenValidationService = new Mock<ITokenValidationService>();
+            _claimsPrincipalService = new Mock<IClaimsPrincipalService>();
 
-            _testObject = new AuthorizerFacade(_requestValidatorService.Object, _tokenConfigService.Object, _tokenValidationService.Object);
+            _testObject = new AuthorizerFacade(_requestValidatorService.Object, _tokenConfigService.Object, _tokenValidationService.Object, _claimsPrincipalService.Object);
         }
 
         [Fact]
@@ -67,6 +70,18 @@ namespace ApiGatewayCustomAuthorizer.Tests
             _tokenValidationService
                 .Setup(x => x.ValidateToken(It.IsAny<string>(), It.IsAny<TokenValidationParameters>()))
                 .Throws<TokenValidationException>();
+
+            var actual = _testObject.Authorize(new Request(), out _, out _);
+
+            Assert.False(actual);
+        }
+
+        [Fact]
+        public void Authorize_ReturnsFalse_WhenClaimsPrincipalServiceThrowsClaimsPrincipalException()
+        {
+            _claimsPrincipalService
+                .Setup(x => x.GetPrincipalId(It.IsAny<ClaimsPrincipal>()))
+                .Throws<ClaimsPrincipalException>();
 
             var actual = _testObject.Authorize(new Request(), out _, out _);
 

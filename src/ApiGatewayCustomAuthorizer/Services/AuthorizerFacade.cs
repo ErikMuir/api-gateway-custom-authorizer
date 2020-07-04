@@ -11,14 +11,16 @@ namespace ApiGatewayCustomAuthorizer
         private readonly IRequestValidationService _requestValidationService;
         private readonly ITokenConfigService _tokenConfigService;
         private readonly ITokenValidationService _tokenValidationService;
+        private readonly IClaimsPrincipalService _claimsPrincipalService;
 
-        public AuthorizerFacade() : this(new RequestValidationService(), new TokenConfigService(), new TokenValidationService()) { }
+        public AuthorizerFacade() : this(new RequestValidationService(), new TokenConfigService(), new TokenValidationService(), new ClaimsPrincipalService()) { }
 
-        public AuthorizerFacade(IRequestValidationService requestValidationService, ITokenConfigService tokenConfigService, ITokenValidationService tokenValidationService)
+        public AuthorizerFacade(IRequestValidationService requestValidationService, ITokenConfigService tokenConfigService, ITokenValidationService tokenValidationService, IClaimsPrincipalService claimsPrincipalService)
         {
             _requestValidationService = requestValidationService;
             _tokenConfigService = tokenConfigService;
             _tokenValidationService = tokenValidationService;
+            _claimsPrincipalService = claimsPrincipalService;
         }
 
         public bool Authorize(Request request, out ApiGatewayArn apiGatewayArn, out string principalId)
@@ -33,9 +35,9 @@ namespace ApiGatewayCustomAuthorizer
                 var jwtConfig = _tokenConfigService.GetJwtConfig();
 
                 var token = request.AuthorizationToken?.Replace("Bearer ", "");
-                var claimsPrincipal = _tokenValidationService.ValidateToken(token, jwtConfig);
+                var user = _tokenValidationService.ValidateToken(token, jwtConfig);
 
-                // TODO : set principalId
+                principalId = _claimsPrincipalService.GetPrincipalId(user);
 
                 return true;
             }
