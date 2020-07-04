@@ -87,5 +87,64 @@ namespace ApiGatewayCustomAuthorizer.Tests
 
             Assert.False(actual);
         }
+
+        [Fact]
+        public void Authorize_TokenValidationService_ValidateToken_Token()
+        {
+            var token = "some.auth.token";
+            var request = new Request { AuthorizationToken = $"Bearer {token}" };
+
+            _testObject.Authorize(request, out _, out _);
+
+            _tokenValidationService.Verify(x => x.ValidateToken(token, It.IsAny<TokenValidationParameters>()), Times.Once);
+        }
+
+        [Fact]
+        public void Authorize_TokenValidationService_ValidateToken_TokenValidationParameters()
+        {
+            var jwtConfig = new TokenValidationParameters();
+            _tokenConfigService.Setup(x => x.GetJwtConfig()).Returns(jwtConfig);
+
+            _testObject.Authorize(new Request(), out _, out _);
+
+            _tokenValidationService.Verify(x => x.ValidateToken(It.IsAny<string>(), jwtConfig), Times.Once);
+        }
+
+        [Fact]
+        public void Authorize_ClaimsPrincipalService_GetPrincipalId()
+        {
+            var user = new ClaimsPrincipal();
+            _tokenValidationService
+                .Setup(x => x.ValidateToken(It.IsAny<string>(), It.IsAny<TokenValidationParameters>()))
+                .Returns(user);
+
+            _testObject.Authorize(new Request(), out _, out _);
+
+            _claimsPrincipalService.Verify(x => x.GetPrincipalId(user), Times.Once);
+        }
+
+        [Fact]
+        public void Authorize_Sets_ApiGatewayArn()
+        {
+            var apiGatewayArn = new ApiGatewayArn();
+            _requestValidatorService.Setup(x => x.ValidateRequest(It.IsAny<Request>(), out apiGatewayArn));
+
+            _testObject.Authorize(new Request(), out var actual, out _);
+
+            Assert.Equal(apiGatewayArn, actual);
+        }
+
+        [Fact]
+        public void Authorize_Sets_PrincipalId()
+        {
+            var principalId = "fake-user-id";
+            _claimsPrincipalService
+                .Setup(x => x.GetPrincipalId(It.IsAny<ClaimsPrincipal>()))
+                .Returns(principalId);
+
+            _testObject.Authorize(new Request(), out _, out var actual);
+
+            Assert.Equal(principalId, actual);
+        }
     }
 }
