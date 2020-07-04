@@ -1,3 +1,4 @@
+using System;
 using Amazon.Lambda.TestUtilities;
 using Moq;
 using Xunit;
@@ -96,6 +97,19 @@ namespace ApiGatewayCustomAuthorizer.Tests
             var actual = _testObject.FunctionHandler(new Request(), new TestLambdaContext());
 
             Assert.Equal(response, actual);
+        }
+
+        [Fact]
+        public void FunctionHandler_Throws_UnauthorizedException()
+        {
+            _authorizerFacade
+                .Setup(x => x.Authorize(It.IsAny<Request>(), out It.Ref<ApiGatewayArn>.IsAny, out It.Ref<string>.IsAny))
+                .Throws<Exception>();
+
+            var exception = Record.Exception(() => _testObject.FunctionHandler(new Request(), new TestLambdaContext()));
+
+            Assert.NotNull(exception);
+            Assert.IsType<UnauthorizedException>(exception);
         }
     }
 }

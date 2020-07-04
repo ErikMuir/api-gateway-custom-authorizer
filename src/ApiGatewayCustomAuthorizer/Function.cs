@@ -28,29 +28,40 @@ namespace ApiGatewayCustomAuthorizer
             _env.Request = request;
             _env.Context = context;
 
-            var isAuthorized = _authorizerFacade.Authorize(request, out ApiGatewayArn apiGatewayArn, out string principalId);
-
-            if (isAuthorized)
+            try
             {
-                // you could implement claims-based authorization for each resource/method if desired
-                // but this implementation is more of an all-or-nothing approach
-                _policyBuilder.AllowAllMethods();
+                var isAuthorized = _authorizerFacade.Authorize(request, out ApiGatewayArn apiGatewayArn, out string principalId);
+
+                if (isAuthorized)
+                {
+                    // you could implement claims-based authorization for each resource/method if desired
+                    // but this implementation is more of an all-or-nothing approach
+                    _policyBuilder.AllowAllMethods();
+                }
+                else
+                {
+                    // you could throw an unauthorized exception here if desired
+                    // but this implementation returns a policy that denies all resources and methods
+                    _policyBuilder.DenyAllMethods();
+                }
+
+                var response = _policyBuilder.Build(apiGatewayArn, principalId);
+
+                // you can add key-value pairs that can be accessed in API Gateway via $context.authorizer.<key>
+                // response.Context.Add("key", "value");
+
+                _logger.LogInformation("Authorizer Response", new { response });
+
+                return response;
             }
-            else
+            catch (Exception ex)
             {
-                // you could throw an unauthorized exception here if desired
-                // but this implementation returns a policy that denies all resources and methods
-                _policyBuilder.DenyAllMethods();
+                if (ex is UnauthorizedException)
+                    throw;
+
+                _logger.LogError(ex, "Unknown error occurred");
+                throw new UnauthorizedException();
             }
-
-            var response = _policyBuilder.Build(apiGatewayArn, principalId);
-
-            // you can add key-value pairs that can be accessed in API Gateway via $context.authorizer.<key>
-            // response.Context.Add("key", "value");
-
-            _logger.LogInformation("Authorizer Response", new { response });
-
-            return response;
         }
     }
 }
