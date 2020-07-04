@@ -1,3 +1,4 @@
+using Microsoft.IdentityModel.Tokens;
 using Moq;
 using Xunit;
 
@@ -8,13 +9,15 @@ namespace ApiGatewayCustomAuthorizer.Tests
         private AuthorizerFacade _testObject;
         private Mock<IRequestValidationService> _requestValidatorService;
         private Mock<ITokenConfigService> _tokenConfigService;
+        private Mock<ITokenValidationService> _tokenValidationService;
 
         public AuthorizerFacadeTests()
         {
             _requestValidatorService = new Mock<IRequestValidationService>();
             _tokenConfigService = new Mock<ITokenConfigService>();
+            _tokenValidationService = new Mock<ITokenValidationService>();
 
-            _testObject = new AuthorizerFacade(_requestValidatorService.Object, _tokenConfigService.Object);
+            _testObject = new AuthorizerFacade(_requestValidatorService.Object, _tokenConfigService.Object, _tokenValidationService.Object);
         }
 
         [Fact]
@@ -52,6 +55,18 @@ namespace ApiGatewayCustomAuthorizer.Tests
         public void Authorize_ReturnsFalse_WhenTokenConfigServiceThrowsJsonWebKeysServiceException()
         {
             _tokenConfigService.Setup(x => x.GetJwtConfig()).Throws<JsonWebKeyServiceException>();
+
+            var actual = _testObject.Authorize(new Request(), out _, out _);
+
+            Assert.False(actual);
+        }
+
+        [Fact]
+        public void Authorize_ReturnsFalse_WhenTokenValidationServiceThrowsTokenValidationException()
+        {
+            _tokenValidationService
+                .Setup(x => x.ValidateToken(It.IsAny<string>(), It.IsAny<TokenValidationParameters>()))
+                .Throws<TokenValidationException>();
 
             var actual = _testObject.Authorize(new Request(), out _, out _);
 
