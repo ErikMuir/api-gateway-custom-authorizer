@@ -14,13 +14,15 @@ namespace ApiGatewayCustomAuthorizer
         private static readonly Logger _logger = Logger.Create<TokenConfigService>();
         private readonly IEnvironmentWrapper _env;
         private readonly IJsonWebKeyService _jwkService;
+        private readonly IJsonWebKeyClient _jwkClient;
 
-        public TokenConfigService() : this(EnvironmentWrapper.Instance, new JsonWebKeyService()) { }
+        public TokenConfigService() : this(EnvironmentWrapper.Instance, new JsonWebKeyService(), new JsonWebKeyClient()) { }
 
-        public TokenConfigService(IEnvironmentWrapper env, IJsonWebKeyService jwkService)
+        public TokenConfigService(IEnvironmentWrapper env, IJsonWebKeyService jwkService, IJsonWebKeyClient jwkClient)
         {
             _env = env;
             _jwkService = jwkService;
+            _jwkClient = jwkClient;
         }
 
         public TokenValidationParameters GetJwtConfig()
@@ -44,7 +46,7 @@ namespace ApiGatewayCustomAuthorizer
             // It is strongly recommended to store your jwks in an environment variable
             // to bypass the HttpClient dependency. You would just need to remember to
             // update the value whenever you cycle the keys.
-            var jwks = _env.Jwks;
+            var jwks = string.IsNullOrWhiteSpace(_env.Jwks) ? GetJwks() : _env.Jwks;
 
             try
             {
@@ -59,6 +61,28 @@ namespace ApiGatewayCustomAuthorizer
             catch (Exception ex)
             {
                 throw new JsonWebKeyServiceException($"Could not deserialize the signing keys: {jwks}", ex);
+            }
+        }
+
+        private string GetJwks()
+        {
+            try
+            {
+                var jwksUri = _env.JwksUri;
+
+                _logger.LogTrace("Sending jwks request", new { jwksUri });
+
+                var jwks = _jwkClient.GetJwks(jwksUri);
+
+                _logger.LogTrace("Received jwks response", new { jwks });
+
+                Environment.SetEnvironmentVariable("JWKS", jwks);
+
+                return jwks;
+            }
+            catch (Exception ex)
+            {
+                throw new JsonWebKeyClientException("Unable to retrieve jwks", ex);
             }
         }
     }
