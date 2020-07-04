@@ -10,14 +10,16 @@ namespace ApiGatewayCustomAuthorizer
     {
         private static readonly Logger _logger = Logger.Create<Function>();
         private readonly IEnvironmentWrapper _env;
+        private readonly IAuthorizerFacade _authorizerFacade;
         private readonly IPolicyBuilder _policyBuilder;
 
-        public Function() : this(EnvironmentWrapper.Instance, new PolicyBuilder())
+        public Function() : this(EnvironmentWrapper.Instance, new AuthorizerFacade(), new PolicyBuilder())
         { }
 
-        public Function(IEnvironmentWrapper env, IPolicyBuilder policyBuilder)
+        public Function(IEnvironmentWrapper env, IAuthorizerFacade authorizerFacade, IPolicyBuilder policyBuilder)
         {
             _env = env;
+            _authorizerFacade = authorizerFacade;
             _policyBuilder = policyBuilder;
         }
 
@@ -26,9 +28,7 @@ namespace ApiGatewayCustomAuthorizer
             _env.Request = request;
             _env.Context = context;
 
-            var isAuthorized = false; // TODO : implement token authorization
-            var apiGatewayArn = ApiGatewayArn.Parse(request.MethodArn);
-            var principalId = null as string; // TODO : get this during token validation process
+            var isAuthorized = _authorizerFacade.Authorize(request, out ApiGatewayArn apiGatewayArn, out string principalId);
 
             if (isAuthorized)
             {
