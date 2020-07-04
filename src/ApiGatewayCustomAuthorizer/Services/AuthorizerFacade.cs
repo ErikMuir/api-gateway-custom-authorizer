@@ -28,8 +28,12 @@ namespace ApiGatewayCustomAuthorizer
             apiGatewayArn = null;
             principalId = null;
 
+            var isAuthorized = false;
+
             try
             {
+                _logger.LogDebug("Authorizing");
+
                 _requestValidationService.ValidateRequest(request, out apiGatewayArn);
 
                 var jwtConfig = _tokenConfigService.GetJwtConfig();
@@ -39,14 +43,16 @@ namespace ApiGatewayCustomAuthorizer
 
                 principalId = _claimsPrincipalService.GetPrincipalId(user);
 
-                return true;
+                isAuthorized = true;
             }
             catch (BaseException ex)
             {
-                _logger.LogWarning(ex.Message);
+                _logger.LogDebug(ex.Message, new { ex.InnerException });
             }
 
-            return false;
+            _logger.LogDebug($"Authorization {(isAuthorized ? "succeeded" : "failed")}", new { principalId });
+
+            return isAuthorized;
         }
     }
 }

@@ -4,9 +4,9 @@ namespace ApiGatewayCustomAuthorizer
 {
     public class AuthPolicyBuilderException : BaseException
     {
-        public AuthPolicyBuilderException() : base(nameof(AuthPolicyBuilderException)) { }
-        public AuthPolicyBuilderException(string message) : base($"{nameof(AuthPolicyBuilderException)}: {message}") { }
-        public AuthPolicyBuilderException(Exception inner) : base(nameof(AuthPolicyBuilderException), inner) { }
-        public AuthPolicyBuilderException(string message, Exception inner) : base($"{nameof(AuthPolicyBuilderException)}: {message}", inner) { }
+        private static readonly string _name = nameof(AuthPolicyBuilderException);
+        public AuthPolicyBuilderException() : base(_name) { }
+        public AuthPolicyBuilderException(string message) : base($"{_name}: {message}") { }
+        public AuthPolicyBuilderException(Exception inner) : base(_name, inner) { }
     }
 }

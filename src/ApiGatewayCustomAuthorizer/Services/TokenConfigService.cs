@@ -60,16 +60,17 @@ namespace ApiGatewayCustomAuthorizer
             }
             catch (Exception ex)
             {
-                throw new JsonWebKeyServiceException($"Could not deserialize the signing keys: {jwks}", ex);
+                _logger.LogError("Could not deserialize the security keys", new { jwks });
+                throw new JsonWebKeyServiceException(ex);
             }
         }
 
         private string GetJwks()
         {
+            var jwksUri = _env.JwksUri;
+
             try
             {
-                var jwksUri = _env.JwksUri;
-
                 _logger.LogTrace("Sending jwks request", new { jwksUri });
 
                 var jwks = _jwkClient.GetJwks(jwksUri);
@@ -82,7 +83,8 @@ namespace ApiGatewayCustomAuthorizer
             }
             catch (Exception ex)
             {
-                throw new JsonWebKeyClientException("Unable to retrieve jwks", ex);
+                _logger.LogError("Could not successfully communicate with the auth service's jwks endpoint", new { jwksUri });
+                throw new JsonWebKeyClientException(ex);
             }
         }
     }

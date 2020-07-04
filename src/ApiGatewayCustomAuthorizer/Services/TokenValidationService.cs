@@ -36,7 +36,7 @@ namespace ApiGatewayCustomAuthorizer
             }
             catch (Exception ex)
             {
-                throw new TokenValidationException($"{ex.Message}", ex);
+                throw new TokenValidationException(ex);
             }
         }
     }

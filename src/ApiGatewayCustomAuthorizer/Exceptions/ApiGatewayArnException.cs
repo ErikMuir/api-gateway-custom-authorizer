@@ -4,9 +4,9 @@ namespace ApiGatewayCustomAuthorizer
 {
     public class ApiGatewayArnException : BaseException
     {
-        public ApiGatewayArnException() : base(nameof(ApiGatewayArnException)) { }
-        public ApiGatewayArnException(string message) : base($"{nameof(ApiGatewayArnException)}: {message}") { }
-        public ApiGatewayArnException(Exception inner) : base(nameof(ApiGatewayArnException), inner) { }
-        public ApiGatewayArnException(string message, Exception inner) : base($"{nameof(ApiGatewayArnException)}: {message}", inner) { }
+        private static readonly string _name = nameof(ApiGatewayArnException);
+        public ApiGatewayArnException() : base(_name) { }
+        public ApiGatewayArnException(string message) : base($"{_name}: {message}") { }
+        public ApiGatewayArnException(Exception inner) : base(_name, inner) { }
     }
 }

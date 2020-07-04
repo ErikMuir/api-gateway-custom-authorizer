@@ -4,9 +4,9 @@ namespace ApiGatewayCustomAuthorizer
 {
     public class TokenValidationException : BaseException
     {
-        public TokenValidationException() { }
-        public TokenValidationException(string message) : base(message) { }
-        public TokenValidationException(Exception inner) : base(nameof(TokenValidationException), inner) { }
-        public TokenValidationException(string message, Exception inner) : base(message, inner) { }
+        private static readonly string _name = nameof(TokenValidationException);
+        public TokenValidationException() : base(_name) { }
+        public TokenValidationException(string message) : base($"{_name}: {message}") { }
+        public TokenValidationException(Exception inner) : base(_name, inner) { }
     }
 }
