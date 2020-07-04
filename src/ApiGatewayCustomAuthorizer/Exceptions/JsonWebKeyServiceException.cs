@@ -6,7 +6,7 @@ namespace ApiGatewayCustomAuthorizer
     {
         public JsonWebKeyServiceException() { }
         public JsonWebKeyServiceException(string message) : base(message) { }
-        public JsonWebKeyServiceException(Exception inner) : base(nameof(AuthPolicyBuilderException), inner) { }
+        public JsonWebKeyServiceException(Exception inner) : base(nameof(JsonWebKeyServiceException), inner) { }
         public JsonWebKeyServiceException(string message, Exception inner) : base(message, inner) { }
     }
 }
