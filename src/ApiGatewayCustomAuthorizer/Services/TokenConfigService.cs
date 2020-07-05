@@ -43,14 +43,15 @@ namespace ApiGatewayCustomAuthorizer
 
         public ICollection<SecurityKey> GetSigningKeys()
         {
-            // It is strongly recommended to store your jwks in an environment variable
-            // to bypass the HttpClient dependency. You would just need to remember to
-            // update the value whenever you cycle the keys.
-            var jwks = string.IsNullOrWhiteSpace(_env.Jwks) ? GetJwks() : _env.Jwks;
+            // For best performace, store your jwks in an environment variable on this Lambda.
+            // If you're willing to sacrifice some latency for added security, you could store them in an SSM parameter instead.
+            // It is highly recommended that you NOT rely on the HttpClient, as it will greatly increase latency.
+            // The first two options require updates anytime you cycle the keys with your auth provider.
+            var jwks = GetJwksEnv() ?? GetJwksSsm() ?? GetJwksHttp();
 
             try
             {
-                _logger.LogTrace("Retrieving signing keys", new { jwks });
+                _logger.LogTrace("Retrieving signing keys from json", new { jwks });
 
                 var signingKeys = _jwkService.GetSigningKeys(jwks);
 
@@ -60,12 +61,24 @@ namespace ApiGatewayCustomAuthorizer
             }
             catch (Exception ex)
             {
-                _logger.LogError("Could not deserialize the security keys", new { jwks });
+                _logger.LogError("Could not deserialize the signing keys", new { jwks });
                 throw new JsonWebKeyServiceException(ex);
             }
         }
 
-        private string GetJwks()
+        private string GetJwksEnv()
+        {
+            return _env.Jwks.DefaultTo(null);
+        }
+
+        private string GetJwksSsm()
+        {
+            var jwks = null as string; // TODO : implement your own SSM parameter retrieval
+
+            return jwks.DefaultTo(null);
+        }
+
+        private string GetJwksHttp()
         {
             var jwksUri = _env.JwksUri;
 
@@ -79,7 +92,7 @@ namespace ApiGatewayCustomAuthorizer
 
                 Environment.SetEnvironmentVariable("JWKS", jwks);
 
-                return jwks;
+                return jwks.DefaultTo(null);
             }
             catch (Exception ex)
             {

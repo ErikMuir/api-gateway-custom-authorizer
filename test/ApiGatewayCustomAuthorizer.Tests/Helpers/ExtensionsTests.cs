@@ -4,44 +4,52 @@ namespace ApiGatewayCustomAuthorizer.Tests
 {
     public class ExtensionsTests
     {
-        [Fact]
-        public void DefaultTo_ReturnsDefaultValue_WhenStringIsNull()
+        [Theory]
+        [InlineData(null)]
+        [InlineData("*")]
+        [InlineData("foobar")]
+        public void DefaultTo_ReturnsDefaultValue_WhenStringIsNull(string defaultValue)
         {
             var value = null as string;
-            var defaultValue = "*";
 
             var actual = value.DefaultTo(defaultValue);
 
             Assert.Equal(defaultValue, actual);
         }
 
-        [Fact]
-        public void DefaultTo_ReturnsDefaultValue_WhenStringIsEmpty()
+        [Theory]
+        [InlineData(null)]
+        [InlineData("*")]
+        [InlineData("foobar")]
+        public void DefaultTo_ReturnsDefaultValue_WhenStringIsEmpty(string defaultValue)
         {
             var value = "";
-            var defaultValue = "*";
 
             var actual = value.DefaultTo(defaultValue);
 
             Assert.Equal(defaultValue, actual);
         }
 
-        [Fact]
-        public void DefaultTo_ReturnsDefaultValue_WhenStringIsOnlyWhiteSpace()
+        [Theory]
+        [InlineData(null)]
+        [InlineData("*")]
+        [InlineData("foobar")]
+        public void DefaultTo_ReturnsDefaultValue_WhenStringIsOnlyWhiteSpace(string defaultValue)
         {
             var value = " \t \n ";
-            var defaultValue = "*";
 
             var actual = value.DefaultTo(defaultValue);
 
             Assert.Equal(defaultValue, actual);
         }
 
-        [Fact]
-        public void DefaultTo_ReturnsInitialValue_WhenStringHasNonWhiteSpace()
+        [Theory]
+        [InlineData(null)]
+        [InlineData("*")]
+        [InlineData("foobar")]
+        public void DefaultTo_ReturnsInitialValue_WhenStringHasNonWhiteSpace(string defaultValue)
         {
             var value = "foobar";
-            var defaultValue = "*";
 
             var actual = value.DefaultTo(defaultValue);
 
