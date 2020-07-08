@@ -44,10 +44,9 @@ namespace ApiGatewayCustomAuthorizer
         public ICollection<SecurityKey> GetSigningKeys()
         {
             // For best performace, store your jwks in an environment variable on this Lambda.
-            // If you're willing to sacrifice some latency for added security, you could store them in an SSM parameter instead.
+            // Just remember to update it anytime you cycle them with your auth provider.
             // It is highly recommended that you NOT rely on the HttpClient, as it will greatly increase latency.
-            // The first two options require updates anytime you cycle the keys with your auth provider.
-            var jwks = GetJwksEnv() ?? GetJwksSsm() ?? GetJwksHttp();
+            var jwks = GetJwksEnv() ?? GetJwksHttp();
 
             try
             {
@@ -69,13 +68,6 @@ namespace ApiGatewayCustomAuthorizer
         private string GetJwksEnv()
         {
             return _env.Jwks.DefaultTo(null);
-        }
-
-        private string GetJwksSsm()
-        {
-            var jwks = null as string; // TODO : implement your own SSM parameter retrieval
-
-            return jwks.DefaultTo(null);
         }
 
         private string GetJwksHttp()

@@ -10,14 +10,12 @@ If you want to put auth in front of your API Gateway using a user management ser
 
 ### JSON Web Key Sets (JWKS)
 
-This authorizer offers three methods for acquiring the JSON web key sets used to validate a caller's token:
+This authorizer offers two methods for acquiring the JSON web key sets used to validate a caller's token:
 
 1. Environment variable
-   - This is the preferred method. It's very quick and therefore has minimal impact on latency. These keys are public by definition so this shouldn't pose a security threat. To implement, you would set the `JWKS` environment variable. For example, if you use Auth0 you would copy the results of a call to `https://YOUR_DOMAIN/.well-known/jwks.json`.
-2. SSM parameter
-   - If you feel you need more security then you may choose to use an SSM parameter. A stubbed out method is provided that you would need to implement yourself.
+   - This is the preferred method. It's very quick and therefore has minimal impact on latency. These keys are public by definition so this shouldn't pose a security threat. To implement, you would set the `JWKS` environment variable. For example, if you use Auth0 you would copy/paste the results of a call to `https://YOUR_DOMAIN.auth0.com/.well-known/jwks.json`.
 3. HTTP request
-   - This is a horrible option as it will add a ton of unnecessary latency to each invocation. To implement, you would set the `JWKS_URI` environment variable. For example, if you use Auth0 you would set the value to `https://YOUR_DOMAIN/.well-known/jwks.json`.
+   - This is a horrible option as it will add a ton of unnecessary latency to each invocation. To implement, you would set the `JWKS_URI` environment variable. For example, if you use Auth0 you would set the value to `https://YOUR_DOMAIN.auth0.com/.well-known/jwks.json`.
 
 ### All-or-Nothing vs Claims-Based
 
@@ -31,13 +29,14 @@ This authorizer has its own `Logger` class. It implements structured logging to 
 
 ### Customizable Log Level
 
-This authorizer has an environment variable called `LOG_LEVEL` that should be set to one of the `LogLevel` enum values found in the `Microsoft.Extensions.Logging` package (i.e. `Trace`, `Debug`, `Information`, `Warning`, `Error`, `Critical`, or `None`). The `Logger` will actively filter out any logs with a type less than this value.
+There is an environment variable called `LOG_LEVEL` that should be set to one of the `LogLevel` enum values found in the `Microsoft.Extensions.Logging` package (i.e. `Trace`, `Debug`, `Information`, `Warning`, `Error`, `Critical`, or `None`). The `Logger` will actively filter out any logs with a type less than this value.
 
 ```
 if (CurrentLogLevel.Value > logLevel)
 {
     return;
 }
+// else we can log...
 ```
 
 It is recommended that you set it to `Information` under normal operating conditions. However, if you're having trouble diagnosing an issue you can simply change the log level to `Debug` or `Trace` (via the AWS CLI or the AWS Lambda Console), and you will immediately begin seeing more detailed logs.
@@ -46,7 +45,7 @@ It is recommended that you set it to `Information` under normal operating condit
 
 ### Structured Logging
 
-The first thing the function handler does is set the `Request` and `Context` properties of the `EnvironmentWrapper`. These are then referenced inside any call to any of the `Log{X}` methods of the Logger, giving you things such as the AWS request ID, the method ARN, and the remaining allowed execution time of the Lambda function.
+The first thing the function handler does is set the `Request` and `Context` properties of the `EnvironmentWrapper`. These are then referenced inside any call to any of the `Log{X}` methods of the Logger, giving you things such as the AWS request ID, the method ARN, and the remaining allowed execution time of the Lambda function, among others.
 
 ```
 var logDynamic = new
@@ -73,4 +72,4 @@ var log = JsonSerializer.Serialize(logDynamic, JsonConfig.SerializerOptions);
 LambdaLogger.Log(log);
 ```
 
-Ensuring all of your logs are structured like this buys you the ability to query them much easier. This will obviously come in handy if you're ever trying to diagnose an issue, but it also makes it much easier to aggregate your log data so that you can create robust dashboards (e.g. AWS, Splunk, DataDog, etc.) that give you observability into your serverless architecture.
+Ensuring all of your logs are structured like this buys you the ability to query them much easier. This will obviously come in handy if you're ever trying to diagnose an issue, but it also makes it much easier to aggregate your logs to create robust dashboards (e.g. AWS, Splunk, DataDog, etc.) that give you observability into your running apps/services.
